@@ -1,7 +1,6 @@
-const User = require('../../models/User'); // Asegúrate de que la ruta sea correcta
-require('dotenv').config();
+import User from '../../models/User.js'; // Asegúrate de que la ruta sea correcta
 
-exports.remove = async (req, res) => {
+export const remove = async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
         if (!user) {

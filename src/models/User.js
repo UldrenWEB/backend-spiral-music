@@ -1,8 +1,8 @@
-const bcrypt = require('bcryptjs');
-const mongoose = require('mongoose');
+import bcrypt from 'bcryptjs';
+import mongoose from 'mongoose';
+import Rol from './Rol.js'; // Asegúrate de que esta ruta sea correcta
 
-
- const UserSchema = new mongoose.Schema({
+const UserSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
@@ -30,5 +30,5 @@ UserSchema.set('toJSON', {
   },
 });
 
-export default User = mongoose.model('User', UserSchema);
-
+const User = mongoose.model('User', UserSchema);
+export default User;

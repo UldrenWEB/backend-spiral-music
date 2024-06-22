@@ -1,10 +1,11 @@
-const User = require('../../models/User'); // Asegúrate de que la ruta sea correcta
-require('dotenv').config();
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+import User from '../../models/User.js'; // Asegúrate de que la ruta sea correcta
+import { configDotenv } from "dotenv";
+import bcrypt from 'bcryptjs';
+import jwt from "jsonwebtoken";
 
+configDotenv();
 
-exports.login = async (req, res) => {
+export const login = async (req, res) => {
     try {
       const { email, password } = req.body;
       const user = await User.findOne({ email });

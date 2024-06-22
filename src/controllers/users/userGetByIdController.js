@@ -1,6 +1,6 @@
-const User = require('../../models/User'); // Asegúrate de que la ruta sea correcta
+import User from '../../models/User.js'; // Asegúrate de que la ruta sea correcta
 
-exports.getUserById = async (req, res) => {
+export const getUserById = async (req, res) => {
     try {
         const user = await User.findById(req.params.id).select('-password');
         res.status(200).json(user);

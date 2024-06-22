@@ -3,6 +3,7 @@ import { configDotenv } from "dotenv";
 import { apiFetch } from "./src/services/apiFetch.js";
 import Spotify from "./src/components/Spotify.js";
 import {connectDB} from "./db.js";
+import userRoutes from './src/routes/users.js';
 
 const spotify = new Spotify();
 
@@ -11,6 +12,8 @@ const app = express();
 const PORT = process.env.PORT ?? 4000;
 
 app.use(express.json());
+
+app.use('/api/users', userRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "Hola bebe" });

@@ -1,11 +1,11 @@
 // userController.js
 
-import User from '../../models/User';
+import User from '../../models/User.js';
 
 export const register = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
-    const user = new User({ username, email, password });
+    const { username, email, password, id_rol } = req.body; // Recibir el ID del rol
+    const user = new User({ username, email, password, id_rol }); // Asignar el rol
     const savedUser = await user.save();
     // Enviar un mensaje de éxito y el usuario creado, pero sin la contraseña
     res.status(201).json({ message: 'El usuario se ha creado correctamente', user: savedUser });

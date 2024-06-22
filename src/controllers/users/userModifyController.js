@@ -1,6 +1,6 @@
-const User = require('../../models/User'); // Asegúrate de que la ruta sea correcta
+import User from '../../models/User.js'; // Asegúrate de que la ruta sea correcta
 
-exports.modify = async (req, res) => {
+export const modify = async (req, res) => {
   try {
     const { bio, website, location } = req.body;
     // Verifica que req.user.id esté definido
