@@ -4,17 +4,39 @@ import { apiFetch } from "../services/apiFetch.js";
 class Spotify {
   constructor() {}
 
-  getTracks = ({ by, param, limit = 10, offset = 0 }) => {
+  getTracks = async ({ by, param, limit = 10, offset = 0 }) => {
     const byFormatted = by.toLowerCase();
-    const obj = {
-      name: { type: "search", option: { type: "track", limit, offset } },
+
+    const option = {
+      name: { type: "search", search: "track" },
       id: { type: "tracks" },
     };
 
-    if (!obj[byFormatted]) return { error: "Incorrect option" };
-
+    const result = await this.#useApiFetch({
+      by: byFormatted,
+      limit,
+      offset,
+      options: option,
+      param: param,
+    });
     try {
-      const used = obj[byFormatted];
+      let theTracks = [];
+
+      if (byFormatted === "name") {
+        const arrayTracks = result["tracks"]["items"];
+
+        const tracks = await this.#getTracksParsed({
+          prop: arrayTracks,
+        });
+
+        theTracks = tracks;
+      } else if (byFormatted === "id") {
+        const track = await this.#getTracksParsed({ prop: result });
+
+        theTracks.push(track[0]);
+      }
+
+      return theTracks.length > 1 ? theTracks : theTracks[0];
     } catch (error) {
       console.log(`Hubo un error al obtener canciones ${error}`);
       return { error: error.message };
@@ -23,32 +45,21 @@ class Spotify {
 
   //Obtener albums por id o por nombre
   getAlbums = async ({ by, param, limit = 10, offset = 0 }) => {
-    // const option = {
-    //   name: { type: "search", search: "album" },
-    //   id: { type: "albums", search: "tracks" },
-    // };
-
-    // this.#useApiFetch({
-    //   by: "",
-    // });
-
     const byFormatted = by.toLowerCase();
-    const obj = {
-      name: { type: "search", option: { type: "album", limit, offset } },
-      id: { type: "albums" },
+
+    const option = {
+      name: { type: "search", search: "album" },
+      id: { type: "albums", search: "tracks" },
     };
 
-    if (!obj[byFormatted]) return { error: "Incorrect option" };
-
-    const used = obj[byFormatted];
+    const result = await this.#useApiFetch({
+      by: byFormatted,
+      limit,
+      offset,
+      options: option,
+      param: param,
+    });
     try {
-      const result = await apiFetch({
-        type: used["type"],
-        option: typeof used["option"] === "string" ? used["option"] : undefined,
-        body:
-          byFormatted === "id" ? { id: param } : { param, ...used["option"] },
-      });
-
       let albums = [];
       if (byFormatted === "name") {
         const arrayAlbums = result["albums"]["items"];
@@ -69,6 +80,7 @@ class Spotify {
           const arrayTracks = await this.#getTracksParsed({
             prop: tracks,
             genres,
+            imageUrl: album.images[0].url,
           });
 
           const obj = {
@@ -102,7 +114,7 @@ class Spotify {
         const obj = {
           id: result.id,
           name: result.name,
-          image: result.images[2],
+          image: result.images[2].url,
           artists: artistsAlbum,
           genre: genres,
           tracks: arrayTracks,
@@ -162,7 +174,7 @@ class Spotify {
         name: artist.name,
         genres: result.genres,
         popularity: result.popularity,
-        image: result.images[2],
+        image: result.images[2].url,
       };
     });
     const arrayArtist = await Promise.all(arrayArtistPromises);
@@ -170,17 +182,21 @@ class Spotify {
     return arrayArtist;
   };
 
-  #getTracksParsed = async ({ prop, genres }) => {
-    const arrayTracksPromises = prop.map(async (track) => {
-      const artistTracks = await this.#getArtistParsed({ prop: track.artists });
+  #getTracksParsed = async ({ prop, genres, imageUrl }) => {
+    const arrayProp = Array.isArray(prop) ? prop : [prop];
 
+    const arrayTracksPromises = arrayProp.map(async (track) => {
+      const artistTracks = await this.#getArtistParsed({ prop: track.artists });
       return {
         id: track.id,
         duration: track.duration_ms / 60000,
         url_track: track.preview_url,
         name: track.name,
         artists: artistTracks,
-        genres,
+        image: !imageUrl ? track?.album?.images[0].url : imageUrl,
+        genres: !genres
+          ? artistTracks.reduce((acc, artist) => [...acc, ...artist.genres], [])
+          : genres,
       };
     });
 

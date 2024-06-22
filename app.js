@@ -1,6 +1,5 @@
 import express from "express";
 import { configDotenv } from "dotenv";
-import { apiFetch } from "./src/services/apiFetch.js";
 import Spotify from "./src/components/Spotify.js";
 
 const spotify = new Spotify();
@@ -18,7 +17,7 @@ app.get("/", (req, res) => {
 app.listen(PORT, async () => {
   const result = await spotify.getAlbums({
     by: "name",
-    param: "estrella",
+    param: "prueba",
   });
 
   console.log("Prueba", result);
