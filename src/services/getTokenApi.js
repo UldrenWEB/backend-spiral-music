@@ -3,8 +3,6 @@ import extractJSON from "../utils/extractJSON.js";
 import { configDotenv } from "dotenv";
 import Token from "../models/Token.js";
 
-
-
 configDotenv();
 const endpoints = extractJSON({ path: "../configs/endpoints.json" });
 const urlAuthorization = endpoints["token"];
@@ -22,20 +20,16 @@ ocurre ningun de los casos anteriores entonces simplemente se devuelve el token
 de la base de datos
 */
 export const getTokenAPi = async () => {
-
-  if (!secrets.client_id ||!secrets.client_secret) {
-    return false;
-  }
+  if (!secrets.client_id || !secrets.client_secret) return false;
 
   const now = new Date();
 
   const existingToken = await Token.findOne().sort({ expiresAt: -1 }).limit(1);
-  
-  if (existingToken && existingToken.expiresAt > now) {
-   
-    return existingToken.token;
-  } else {
-  }
+
+  // if (existingToken && existingToken.expiresAt > now) {
+  //   return existingToken.token;
+  // } else {
+  // }
 
   const options = {
     method: "POST",
@@ -49,30 +43,27 @@ export const getTokenAPi = async () => {
     }),
   };
 
-  console.log("Solicitando nuevo token...", options); // Indicar que se va a solicitar un nuevo token
+  // console.log("Solicitando nuevo token...", options); // Indicar que se va a solicitar un nuevo token
 
   try {
     const response = await fetch(urlAuthorization, options);
     const result = await response.json();
 
-    if (!result ||!result.access_token) {
+    if (!result || !result.access_token) {
       console.error("Respuesta inválida o sin token:", result); // Indicar si la respuesta es inválida o no contiene un token
       return false;
     }
 
-    
-
     const expiresAt = new Date(now.getTime() + 60 * 60 * 1000); // Calcular la fecha de expiración
 
-    
     await Token.deleteMany({});
     await Token.create({
       idToken: result.access_token,
       token: result.access_token,
-      expiresAt: expiresAt
+      expiresAt: expiresAt,
     });
 
-    console.log("Token guardado exitosamente."); // Confirmar que el token fue guardado
+    // console.log("Token guardado exitosamente."); // Confirmar que el token fue guardado
     return result.access_token;
   } catch (error) {
     console.error("Hubo un error al obtener o guardar el token", error); // Registrar cualquier error que ocurra

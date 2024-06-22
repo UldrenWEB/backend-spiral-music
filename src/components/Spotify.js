@@ -4,6 +4,7 @@ import { apiFetch } from "../services/apiFetch.js";
 class Spotify {
   constructor() {}
 
+  //Obtener canciones por id, por nombre y por artist
   getTracks = async ({ by, param, limit = 10, offset = 0 }) => {
     const byFormatted = by.toLowerCase();
 
@@ -37,9 +38,20 @@ class Spotify {
         theTracks.push(track[0]);
       } else if (byFormatted === "artist") {
         const arrayArtist = result["artists"]["items"];
-        const artistParsed = await this.#getArtistParsed({ prop: arrayArtist });
 
-        console.log("result", artistParsed);
+        const artistParsed = await this.#getArtistParsed({
+          prop: arrayArtist,
+          isComplete: true,
+        });
+
+        for (let i in artistParsed) {
+          const tracksByArtist = await this.#getTracksByArtist({
+            idArtist: artistParsed[i].id,
+            genres: artistParsed.genres,
+          });
+
+          theTracks.push({ ...artistParsed[i], tracks: tracksByArtist });
+        }
       }
 
       return theTracks.length > 1 ? theTracks : theTracks[0];
@@ -96,7 +108,7 @@ class Spotify {
             artists: artistsAlbum,
             genre: genres,
             tracks: arrayTracks,
-            type: album.type,
+            type: album.album_type,
           };
 
           albums.push(obj);
@@ -175,19 +187,22 @@ class Spotify {
     }
   };
 
-  #getArtistParsed = async ({ prop }) => {
+  #getArtistParsed = async ({ prop, isComplete }) => {
     const arrayArtistPromises = prop.map(async (artist) => {
-      const result = await apiFetch({
-        type: "artist",
-        body: { id: artist.id },
-      });
+      let result;
+      if (!isComplete) {
+        result = await apiFetch({
+          type: "artist",
+          body: { id: artist.id },
+        });
+      }
 
       return {
         id: artist.id,
         name: artist.name,
-        genres: result.genres,
-        popularity: result.popularity,
-        image: result.images[0]?.url,
+        genres: !isComplete ? result.genres : artist.genres,
+        popularity: !isComplete ? result.popularity : artist.popularity,
+        image: !isComplete ? result.images[0]?.url : artist.images[0].url,
       };
     });
     const arrayArtist = await Promise.all(arrayArtistPromises);
@@ -237,9 +252,37 @@ class Spotify {
       return new Error("Genero no encontrado");
     }
   };
+
+  #getTracksByArtist = async ({ idArtist, genres }) => {
+    const objectAlbums = await apiFetch({
+      type: "artist",
+      option: "albums",
+      body: { id: idArtist },
+    });
+
+    const albums = objectAlbums["items"];
+
+    const tracksAlbumsPromises = (Array.isArray(albums) ? albums : null)?.map(
+      async (album) => {
+        const result = await apiFetch({
+          type: "albums",
+          body: { id: album.id },
+        });
+
+        const tracks = result["tracks"]["items"];
+
+        return await this.#getTracksParsed({
+          prop: tracks,
+          imageUrl: result.images[0].url,
+          genres: result.genres.length > 0 ? result.genres : genres,
+        });
+      }
+    );
+
+    const [tracksAlbums] = await Promise.all(tracksAlbumsPromises);
+
+    return tracksAlbums;
+  };
 }
 
 export default Spotify;
-function newFunction() {
-  return require("express");
-}
