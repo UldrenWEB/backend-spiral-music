@@ -18,7 +18,6 @@ si no esta hace la llamada y si esta y expiro entonces hace la llamada, si no
 ocurre ningun de los casos anteriores entonces simplemente se devuelve el token 
 de la base de datos
 */
-
 export const getTokenAPi = async () => {
   const { client_id, client_secret } = secrets;
 

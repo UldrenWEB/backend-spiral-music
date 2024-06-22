@@ -26,6 +26,7 @@ export const apiFetch = async ({ type, option = false, body }) => {
 
   try {
     const accessToken = await getTokenAPi();
+    console.log(accessToken);
     const response = await fetch(`${url}${parameters}`, {
       method: "GET",
       headers: {

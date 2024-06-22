@@ -74,7 +74,7 @@ class Spotify {
           const obj = {
             id: album.id,
             name: album.name,
-            image: album.images[2],
+            image: album.images[0].url,
             artists: artistsAlbum,
             genre: genres,
             tracks: arrayTracks,
