@@ -9,6 +9,7 @@ class Spotify {
 
     const option = {
       name: { type: "search", search: "track" },
+      artist: { type: "search", search: "artist" },
       id: { type: "tracks" },
     };
 
@@ -34,6 +35,11 @@ class Spotify {
         const track = await this.#getTracksParsed({ prop: result });
 
         theTracks.push(track[0]);
+      } else if (byFormatted === "artist") {
+        const arrayArtist = result["artists"]["items"];
+        const artistParsed = await this.#getArtistParsed({ prop: arrayArtist });
+
+        console.log("result", artistParsed);
       }
 
       return theTracks.length > 1 ? theTracks : theTracks[0];
@@ -57,7 +63,7 @@ class Spotify {
       limit,
       offset,
       options: option,
-      param: param,
+      param,
     });
     try {
       let albums = [];
@@ -142,7 +148,13 @@ class Spotify {
         type: options["id"].type,
         option: { type: options["id"].search },
       },
+      artist: {
+        type: options["artist"].type,
+        option: { type: options["artist"].search, limit, offset },
+      },
     };
+
+    console.log(obj[byFormatted]);
 
     if (!obj[byFormatted]) return false;
 
@@ -228,3 +240,6 @@ class Spotify {
 }
 
 export default Spotify;
+function newFunction() {
+  return require("express");
+}

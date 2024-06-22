@@ -15,9 +15,9 @@ app.get("/", (req, res) => {
 });
 
 app.listen(PORT, async () => {
-  const result = await spotify.getAlbums({
-    by: "id",
-    param: "33sACfE4QiCwI5MwFhEllf",
+  const result = await spotify.getTracks({
+    by: "artist",
+    param: "mora",
   });
 
   console.log("Prueba", result);
