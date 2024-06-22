@@ -26,10 +26,10 @@ export const getTokenAPi = async () => {
 
   const existingToken = await Token.findOne().sort({ expiresAt: -1 }).limit(1);
 
-  // if (existingToken && existingToken.expiresAt > now) {
-  //   return existingToken.token;
-  // } else {
-  // }
+  if (existingToken && existingToken.expiresAt > now) {
+    return existingToken.token;
+  } else {
+  }
 
   const options = {
     method: "POST",
