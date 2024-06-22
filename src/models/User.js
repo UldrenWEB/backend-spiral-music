@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 
 
-export const UserSchema = new mongoose.Schema({
+ const UserSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
@@ -29,4 +29,6 @@ UserSchema.set('toJSON', {
     delete returnedObject.password; // Elimina la contraseña
   },
 });
+
+export default User = mongoose.model('User', UserSchema);
 

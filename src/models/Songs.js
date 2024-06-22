@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-export const SongsSchema = new mongoose.Schema({
+ const SongsSchema = new mongoose.Schema({
     idSong: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     genre: { type: String, required: true },
@@ -9,4 +9,6 @@ export const SongsSchema = new mongoose.Schema({
     url_cancion: { type: String, required: true },
     idArtist: [{ type: Schema.Types.ObjectId, ref: 'Artist', required: true }],
 });
+
+export default mongoose.model('Songs', SongsSchema);
 
