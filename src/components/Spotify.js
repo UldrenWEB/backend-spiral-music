@@ -109,6 +109,7 @@ class Spotify {
         const arrayTracks = await this.#getTracksParsed({
           prop: tracks,
           genres,
+          imageUrl: result.images[2].url,
         });
 
         const obj = {
@@ -174,7 +175,7 @@ class Spotify {
         name: artist.name,
         genres: result.genres,
         popularity: result.popularity,
-        image: result.images[2].url,
+        image: result.images[0]?.url,
       };
     });
     const arrayArtist = await Promise.all(arrayArtistPromises);

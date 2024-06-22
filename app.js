@@ -16,8 +16,8 @@ app.get("/", (req, res) => {
 
 app.listen(PORT, async () => {
   const result = await spotify.getAlbums({
-    by: "name",
-    param: "prueba",
+    by: "id",
+    param: "33sACfE4QiCwI5MwFhEllf",
   });
 
   console.log("Prueba", result);
