@@ -1,8 +1,10 @@
-require('dotenv').config(); // Carga las variables de entorno desde.env
+import { configDotenv } from "dotenv";
 
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
-const connectDB = async () => {
+configDotenv();
+
+export const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URL, {
         useNewUrlParser: true,
@@ -15,4 +17,3 @@ const connectDB = async () => {
   }
 };
 
-module.exports = connectDB;

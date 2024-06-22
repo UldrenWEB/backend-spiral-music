@@ -2,7 +2,7 @@ import express from "express";
 import { configDotenv } from "dotenv";
 import { apiFetch } from "./src/services/apiFetch.js";
 import Spotify from "./src/components/Spotify.js";
-const connectDB = require('./db');
+import {connectDB} from "./db.js";
 
 const spotify = new Spotify();
 
@@ -25,6 +25,5 @@ app.listen(PORT, async () => {
 app.use(express.json());
 connectDB();
 
-  console.log("Prueba", result);
   console.log(`Server is running on Port ${PORT} on http://127.0.0.1:${PORT}`);
 });

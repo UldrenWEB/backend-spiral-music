@@ -1,6 +1,7 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
-const AlbumSchema = new mongoose.Schema({
+
+export const AlbumSchema = new mongoose.Schema({
     idAlbum: { type: String, required: true, unique: true },
     idSong: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Songs' }],
     genre : [{ type: String, required: true }],
@@ -9,5 +10,5 @@ const AlbumSchema = new mongoose.Schema({
     idArtist: [{ type: String, required: true }]
 });
 
-module.exports = mongoose.model('Album', AlbumSchema);
+
 
