@@ -4,6 +4,7 @@ import { apiFetch } from "./src/services/apiFetch.js";
 import Spotify from "./src/components/Spotify.js";
 import {connectDB} from "./db.js";
 import userRoutes from './src/routes/users.js';
+import rolRoutes from './src/routes/rol.js';
 
 
 connectDB();
@@ -15,6 +16,8 @@ const app = express();
 const PORT = process.env.PORT ?? 4000;
 
 app.use(express.json());
+
+app.use('/api/rol', rolRoutes);
 
 app.use('/api/users', userRoutes);
 

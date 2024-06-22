@@ -11,7 +11,8 @@ const UserSchema = new mongoose.Schema({
     website: String,
     location: String,
   },
-  id_rol: { type: mongoose.Schema.Types.ObjectId, ref: 'Rol' },
+  idRol: { type: mongoose.Schema.Types.String, required: true, ref: 'Rol' },
+  idArtist: { type: mongoose.Schema.Types.ObjectId, ref: 'Artist' },
 });
 
 UserSchema.pre('save', async function(next) {
