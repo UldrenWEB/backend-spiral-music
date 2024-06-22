@@ -1,7 +1,8 @@
 import User from '../../models/User.js'; // Asegúrate de que la ruta sea correcta
 import { configDotenv } from "dotenv";
 import bcrypt from 'bcryptjs';
-import jwt from "jsonwebtoken";
+import jwt from 'jsonwebtoken';
+
 
 configDotenv();
 

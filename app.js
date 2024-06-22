@@ -5,6 +5,9 @@ import Spotify from "./src/components/Spotify.js";
 import {connectDB} from "./db.js";
 import userRoutes from './src/routes/users.js';
 
+
+connectDB();
+
 const spotify = new Spotify();
 
 configDotenv();
@@ -25,8 +28,8 @@ app.listen(PORT, async () => {
     param: "estrella",
   });
 
-app.use(express.json());
-connectDB();
+
+
 
   console.log(`Server is running on Port ${PORT} on http://127.0.0.1:${PORT}`);
 });
