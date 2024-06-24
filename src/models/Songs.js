@@ -1,7 +1,7 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
+
 
  const SongsSchema = new mongoose.Schema({
-    idSong: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     genre: { type: String, required: true },
     duration: { type: Number, required: true },
