@@ -37,7 +37,7 @@ class SongsController {
     
             if (newSongs.length < limit) {
                 const spotifySongs = await this.spotify.getTracks({
-                    by: 'name',
+                    by: 'name', //Artist, //Id y por genre
                     param: name,
                     limit: limit,
                     offset: skipAmount,
@@ -52,7 +52,8 @@ class SongsController {
                     if (!existingSong) {
                         const songDoc = await Songs.create({
                           ...song,
-                            idArtist: [] // Inicializa como un array vacío
+                            idArtist: []
+                             // Inicializa como un array vacío
                         });
     
                         for (const artistObj of song.artists) {
@@ -60,7 +61,7 @@ class SongsController {
                             if (!existingArtist) {
                                 existingArtist = new Artist({
                                     name: artistObj.name,
-                                    genre: artistObj.genres[0],
+                                    genres: artistObj.genre,
                                     image: artistObj.image,
                                     popularity: artistObj.popularity
                                 });

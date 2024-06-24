@@ -3,7 +3,7 @@ import mongoose, { Schema } from 'mongoose';
 
  const SongsSchema = new mongoose.Schema({
     name: { type: String, required: true },
-    genre: { type: String, required: false },
+    genres: [{ type: String, required: false }],
     duration: { type: Number, required: true },
     image: { type: String, required: true },
     url_cancion: { type: String, required: false },
