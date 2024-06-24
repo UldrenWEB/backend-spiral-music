@@ -30,11 +30,5 @@ app.get("/", (req, res) => {
 });
 
 app.listen(PORT, async () => {
-  const result = await spotify.getTracks({
-    by: "artist",
-    param: "mora",
-  });
-
-  console.log("Prueba", result);
   console.log(`Server is running on Port ${PORT} on http://127.0.0.1:${PORT}`);
 });
