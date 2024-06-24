@@ -1,6 +1,5 @@
 import express from "express";
 import { configDotenv } from "dotenv";
-import { apiFetch } from "./src/services/apiFetch.js";
 import Spotify from "./src/components/Spotify.js";
 import {connectDB} from "./db.js";
 import userRoutes from './src/routes/users.js';
@@ -31,13 +30,11 @@ app.get("/", (req, res) => {
 });
 
 app.listen(PORT, async () => {
-  const result = await spotify.getAlbums({
-    by: "name",
-    param: "estrella",
+  const result = await spotify.getTracks({
+    by: "artist",
+    param: "mora",
   });
 
-
-
-
+  console.log("Prueba", result);
   console.log(`Server is running on Port ${PORT} on http://127.0.0.1:${PORT}`);
 });

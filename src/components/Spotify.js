@@ -4,17 +4,57 @@ import { apiFetch } from "../services/apiFetch.js";
 class Spotify {
   constructor() {}
 
-  getTracks = ({ by, param, limit = 10, offset = 0 }) => {
+  //Obtener canciones por id, por nombre y por artist
+  getTracks = async ({ by, param, limit = 10, offset = 0 }) => {
     const byFormatted = by.toLowerCase();
-    const obj = {
-      name: { type: "search", option: { type: "track", limit, offset } },
+
+    const option = {
+      name: { type: "search", search: "track" },
+      artist: { type: "search", search: "artist" },
       id: { type: "tracks" },
     };
 
-    if (!obj[byFormatted]) return { error: "Incorrect option" };
-
+    const result = await this.#useApiFetch({
+      by: byFormatted,
+      limit,
+      offset,
+      options: option,
+      param: param,
+    });
     try {
-      const used = obj[byFormatted];
+      let theTracks = [];
+
+      if (byFormatted === "name") {
+        const arrayTracks = result["tracks"]["items"];
+
+        const tracks = await this.#getTracksParsed({
+          prop: arrayTracks,
+        });
+
+        theTracks = tracks;
+      } else if (byFormatted === "id") {
+        const track = await this.#getTracksParsed({ prop: result });
+
+        theTracks.push(track[0]);
+      } else if (byFormatted === "artist") {
+        const arrayArtist = result["artists"]["items"];
+
+        const artistParsed = await this.#getArtistParsed({
+          prop: arrayArtist,
+          isComplete: true,
+        });
+
+        for (let i in artistParsed) {
+          const tracksByArtist = await this.#getTracksByArtist({
+            idArtist: artistParsed[i].id,
+            genres: artistParsed.genres,
+          });
+
+          theTracks.push({ ...artistParsed[i], tracks: tracksByArtist });
+        }
+      }
+
+      return theTracks.length > 1 ? theTracks : theTracks[0];
     } catch (error) {
       console.log(`Hubo un error al obtener canciones ${error}`);
       return { error: error.message };
@@ -23,32 +63,21 @@ class Spotify {
 
   //Obtener albums por id o por nombre
   getAlbums = async ({ by, param, limit = 10, offset = 0 }) => {
-    // const option = {
-    //   name: { type: "search", search: "album" },
-    //   id: { type: "albums", search: "tracks" },
-    // };
-
-    // this.#useApiFetch({
-    //   by: "",
-    // });
-
     const byFormatted = by.toLowerCase();
-    const obj = {
-      name: { type: "search", option: { type: "album", limit, offset } },
-      id: { type: "albums" },
+
+    const option = {
+      name: { type: "search", search: "album" },
+      id: { type: "albums", search: "tracks" },
     };
 
-    if (!obj[byFormatted]) return { error: "Incorrect option" };
-
-    const used = obj[byFormatted];
+    const result = await this.#useApiFetch({
+      by: byFormatted,
+      limit,
+      offset,
+      options: option,
+      param,
+    });
     try {
-      const result = await apiFetch({
-        type: used["type"],
-        option: typeof used["option"] === "string" ? used["option"] : undefined,
-        body:
-          byFormatted === "id" ? { id: param } : { param, ...used["option"] },
-      });
-
       let albums = [];
       if (byFormatted === "name") {
         const arrayAlbums = result["albums"]["items"];
@@ -69,6 +98,7 @@ class Spotify {
           const arrayTracks = await this.#getTracksParsed({
             prop: tracks,
             genres,
+            imageUrl: album.images[0].url,
           });
 
           const obj = {
@@ -78,7 +108,7 @@ class Spotify {
             artists: artistsAlbum,
             genre: genres,
             tracks: arrayTracks,
-            type: album.type,
+            type: album.album_type,
           };
 
           albums.push(obj);
@@ -97,12 +127,13 @@ class Spotify {
         const arrayTracks = await this.#getTracksParsed({
           prop: tracks,
           genres,
+          imageUrl: result.images[2].url,
         });
 
         const obj = {
           id: result.id,
           name: result.name,
-          image: result.images[2],
+          image: result.images[2].url,
           artists: artistsAlbum,
           genre: genres,
           tracks: arrayTracks,
@@ -129,7 +160,13 @@ class Spotify {
         type: options["id"].type,
         option: { type: options["id"].search },
       },
+      artist: {
+        type: options["artist"].type,
+        option: { type: options["artist"].search, limit, offset },
+      },
     };
+
+    console.log(obj[byFormatted]);
 
     if (!obj[byFormatted]) return false;
 
@@ -150,19 +187,22 @@ class Spotify {
     }
   };
 
-  #getArtistParsed = async ({ prop }) => {
+  #getArtistParsed = async ({ prop, isComplete }) => {
     const arrayArtistPromises = prop.map(async (artist) => {
-      const result = await apiFetch({
-        type: "artist",
-        body: { id: artist.id },
-      });
+      let result;
+      if (!isComplete) {
+        result = await apiFetch({
+          type: "artist",
+          body: { id: artist.id },
+        });
+      }
 
       return {
         id: artist.id,
         name: artist.name,
-        genres: result.genres,
-        popularity: result.popularity,
-        image: result.images[2],
+        genres: !isComplete ? result.genres : artist.genres,
+        popularity: !isComplete ? result.popularity : artist.popularity,
+        image: !isComplete ? result.images[0]?.url : artist.images[0].url,
       };
     });
     const arrayArtist = await Promise.all(arrayArtistPromises);
@@ -170,17 +210,21 @@ class Spotify {
     return arrayArtist;
   };
 
-  #getTracksParsed = async ({ prop, genres }) => {
-    const arrayTracksPromises = prop.map(async (track) => {
-      const artistTracks = await this.#getArtistParsed({ prop: track.artists });
+  #getTracksParsed = async ({ prop, genres, imageUrl }) => {
+    const arrayProp = Array.isArray(prop) ? prop : [prop];
 
+    const arrayTracksPromises = arrayProp.map(async (track) => {
+      const artistTracks = await this.#getArtistParsed({ prop: track.artists });
       return {
         id: track.id,
         duration: track.duration_ms / 60000,
         url_track: track.preview_url,
         name: track.name,
         artists: artistTracks,
-        genres,
+        image: !imageUrl ? track?.album?.images[0].url : imageUrl,
+        genres: !genres
+          ? artistTracks.reduce((acc, artist) => [...acc, ...artist.genres], [])
+          : genres,
       };
     });
 
@@ -207,6 +251,37 @@ class Spotify {
       console.log(`Hubo un error al obtener los generos ${error.message}`);
       return new Error("Genero no encontrado");
     }
+  };
+
+  #getTracksByArtist = async ({ idArtist, genres }) => {
+    const objectAlbums = await apiFetch({
+      type: "artist",
+      option: "albums",
+      body: { id: idArtist },
+    });
+
+    const albums = objectAlbums["items"];
+
+    const tracksAlbumsPromises = (Array.isArray(albums) ? albums : null)?.map(
+      async (album) => {
+        const result = await apiFetch({
+          type: "albums",
+          body: { id: album.id },
+        });
+
+        const tracks = result["tracks"]["items"];
+
+        return await this.#getTracksParsed({
+          prop: tracks,
+          imageUrl: result.images[0].url,
+          genres: result.genres.length > 0 ? result.genres : genres,
+        });
+      }
+    );
+
+    const [tracksAlbums] = await Promise.all(tracksAlbumsPromises);
+
+    return tracksAlbums;
   };
 }
 
