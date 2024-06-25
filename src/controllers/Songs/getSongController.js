@@ -75,7 +75,6 @@ class SongsController {
                     }
                 }
             }
-    
             // Finalmente, retorna todas las canciones encontradas o agregadas
             // Nota: La consulta al final debería usar también una expresión regular ajustada para coincidir exactamente con el inicio del nombre
             regex = new RegExp("^" + name, "i"); // Ajusta la expresión regular aquí también si es necesario
