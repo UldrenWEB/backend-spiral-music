@@ -4,6 +4,9 @@ import SongsController from '../controllers/Songs/getSongController.js';
 import SongsByArtistController from '../controllers/Songs/getSongByArtistController.js';
 import getSongById from '../controllers/Songs/getSongByIdController.js';
 import SongsByGenresController  from '../controllers/Songs/getSongByGenresController.js';
+import SongsByDurationController from '../controllers/Songs/getSongByDuration.js';
+
+const songsControllerByDuration = new SongsByDurationController();
 
 const songsControllerInstanceByGenres = new SongsByGenresController();
 
@@ -32,6 +35,10 @@ router.get('/get-songs-by-artist/:name/:offset?', (req, res ) => {
 
    // Obtener canciones por generos
    router.get('/get-songs-by-genres/', songsControllerInstanceByGenres.getSongsByGenres);
+
+   //Obtener canciones por duración
+   router.get('/get-songs-by-duration', songsControllerByDuration.getSongsByDuration);
+
 
 export default router
 

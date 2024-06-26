@@ -1,39 +1,38 @@
 // Importa el modelo Songs
 import Songs from '../../models/Songs.js';
 
-class SongsByGenresController {
+class SongsByDurationController {
     constructor() {
-        console.log("Creando instancia de SongsByGenresController...");
+        console.log("Creando instancia de SongsByDurationController...");
     }
 
-    async getSongsByGenres(req, res) {
-        console.log("Accediendo a getSongsByGenres");
+    async getSongsByDuration(req, res) {
+        console.log("Accediendo a getSongsByDuration");
         try {
-            const { genres, offset, limit } = req.query;
-
-            // Parsea los géneros a un arreglo si viene como una cadena
-            const parsedGenres = Array.isArray(genres)? genres : genres.split(',');
+            const { minDuration, maxDuration, offset, limit } = req.query;
 
             // Define el límite y salto para paginación
             const queryLimit = limit? parseInt(limit) : 10; // Si no se define un límite, usa 10 por defecto
             const skipAmount = offset? parseInt(offset) : 0; // Si no se define un offset, comienza desde el principio
 
-            // Realiza la consulta a la base de datos con populate para obtener los nombres de los artistas
+            // Filtra canciones por duración dentro del rango especificado directamente en minutos
             const songs = await Songs.find({
-                genres: {
-                    $in: parsedGenres // Busca canciones donde alguno de los géneros coincida con los proporcionados
+                duration: {
+                    $gte: minDuration? parseFloat(minDuration) : undefined, // Usa $gte para filtrar por duración mínima
+                    $lte: maxDuration? parseFloat(maxDuration) : undefined // Usa $lte para filtrar por duración máxima
                 }})
-               .skip(skipAmount)
-               .limit(queryLimit)
-               .populate('idArtist', 'name'); // Poblar solo el campo 'name' del modelo Artist
+           .skip(skipAmount)
+           .limit(queryLimit)
+           .populate('idArtist', 'name') // Poblar solo el campo 'name' del modelo Artist
+           .sort({ duration: 1 }); // Ordena las canciones por duración de manera ascendente
 
-            // Preparar la respuesta ajustando la estructura según lo solicitado
+            // Prepara la respuesta ajustando la estructura según lo solicitado
             const responseSongs = songs.map(song => ({
                 name: song.name,
-                duration: song.duration,
+                duration: parseFloat(song.duration.toFixed(2)), // Mantiene la duración en minutos, redondeada a 2 decimales para la respuesta
                 genres: song.genres,
                 image: song.image,
-                Artist: song.idArtist.map(artist => artist.name) // Extraer solo el nombre de cada artista
+                Artist: song.idArtist.map(artist => artist.name) // Extrae solo el nombre de cada artista
             }));
 
             res.json({
@@ -53,9 +52,9 @@ class SongsByGenresController {
                 },
                 data: {} // La descripción está vacía porque hubo un error
             });
-        }
     }
 }
 
+}
 
-export default SongsByGenresController;
+export default SongsByDurationController;
