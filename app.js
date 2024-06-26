@@ -1,17 +1,13 @@
 import express from "express";
 import { configDotenv } from "dotenv";
-import Spotify from "./src/components/Spotify.js";
 import { connectDB } from "./db.js";
 import userRoutes from "./src/routes/users.js";
 import rolRoutes from "./src/routes/rol.js";
 import artistRoutes from "./src/routes/artist.js";
 import playlistRoutes from "./src/routes/playlist.js";
 import songsRoutes from "./src/routes/songs.js";
-import { apiFetch } from "./src/services/apiFetch.js";
 
 connectDB();
-
-const spotify = new Spotify();
 
 configDotenv();
 const app = express();
@@ -29,11 +25,6 @@ app.get("/", (req, res) => {
   res.json({ message: "Hola bebe" });
 });
 
-app.listen(PORT, async () => {
-  const result = await spotify.getAlbums({
-    by: "name",
-    param: "memorias",
-  });
-  console.log("Aqui prueba", result);
+app.listen(PORT, () => {
   console.log(`Server is running on Port ${PORT} on http://127.0.0.1:${PORT}`);
 });
