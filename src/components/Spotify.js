@@ -161,12 +161,10 @@ class Spotify {
         option: { type: options["id"].search },
       },
       artist: {
-        type: options["artist"].type,
-        option: { type: options["artist"].search, limit, offset },
+        type: options["artist"]?.type,
+        option: { type: options["artist"]?.search, limit, offset },
       },
     };
-
-    console.log(obj[byFormatted]);
 
     if (!obj[byFormatted]) return false;
 
