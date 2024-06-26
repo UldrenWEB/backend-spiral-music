@@ -8,40 +8,48 @@ async function getSongById(req, res) {
 
     try { 
         const song = await Songs.findById(cleanedId)
-          .populate('idArtist')
-          .select('-idArtist');
+        .populate('idArtist')
+        .select('-idArtist');
         if (!song) {
             return res.status(404).json({
-                message: 'Canción no encontrada',
-                code: 1, // Indicamos un error al no encontrar la canción
-                description: {} // La descripción está vacía porque no hay datos para mostrar
+                message: {
+                    description: 'Canción no encontrada',
+                    code: 1 // Indicamos un error al no encontrar la canción
+                },
+                data: {} // La descripción está vacía porque no hay datos para mostrar
             });
         }
 
         const { name, duration, genres, image, url_cancion, idArtist } = song;
-        const artistName = idArtist.map(artistRef => artistRef.name).join(', ');
+        
+        // Construye un array de nombres de artistas a partir de las referencias pobladas
+        const ArtistNames = idArtist.map(artistRef => artistRef.name);
 
         // Preparar la descripción con los datos de la canción
-        const description = {
+        const data = {
             name,
             duration,
             genres,
             image,
             url_cancion,
-            artistName
+            Artist: ArtistNames // Usa directamente el array de nombres de artistas
         };
 
         res.json({
-            message: 'Se obtuvo la canción correctamente',
-            code: 0, // Indicamos éxito al encontrar y obtener la canción
-            description: description
+            message: {
+                description: 'Se obtuvo la canción correctamente',
+                code: 0 // Indicamos éxito al encontrar y obtener la canción
+            },
+            data: data
         });
     } catch (error) {
         console.error(error);
         res.status(500).json({
-            message: 'Error interno del servidor',
-            code: 1, // Indicamos un error en el proceso
-            description: {} // La descripción está vacía porque hubo un error
+            message: {
+                description: 'Error interno del servidor',
+                code: 1 // Indicamos un error en el proceso
+            },
+            data: {} // La descripción está vacía porque hubo un error
         });
     }
 }
