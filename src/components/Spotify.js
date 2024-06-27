@@ -141,7 +141,7 @@ class Spotify {
 
         albums.push(obj);
       }
-
+      console.log(albums); // Agregar esta línea
       return albums.length > 1 ? albums : albums[0];
     } catch (error) {
       console.log(`Hubo un error al obtener albums ${error}`);
@@ -151,20 +151,23 @@ class Spotify {
 
   #useApiFetch = async ({ by, param, options, limit, offset }) => {
     const byFormatted = by.toLowerCase();
+    console.log(`byFormatted: ${byFormatted}`); // 2. Imprime `byFormatted` para verificar su valor
     const obj = {
       name: {
-        type: options["name"].type,
-        option: { type: options["name"].search, limit, offset },
+        type: options["name"]?.type, // Usa el operador opcional para evitar errores si options["name"] es undefined
+        option: { type: options["name"]?.search, limit, offset },
       },
       id: {
-        type: options["id"].type,
-        option: { type: options["id"].search },
+        type: options["id"]?.type, // Usa el operador opcional para evitar errores si options["id"] es undefined
+        option: { type: options["id"]?.search },
       },
       artist: {
-        type: options["artist"].type,
-        option: { type: options["artist"].search, limit, offset },
+        type: options["artist"]?.type, // Usa el operador opcional para evitar errores si options["artist"] es undefined
+        option: { type: options["artist"]?.search, limit, offset },
       },
     };
+
+    console.log('Opciones recibidas:', options);
 
     console.log(obj[byFormatted]);
 
@@ -175,9 +178,9 @@ class Spotify {
     try {
       const result = await apiFetch({
         type: used["type"],
-        option: typeof used["option"] !== "object" ? used["option"] : undefined,
+        option: typeof used["option"]!== "object"? used["option"] : undefined,
         body:
-          byFormatted === "id" ? { id: param } : { param, ...used["option"] },
+          byFormatted === "id"? { id: param } : { param,...used["option"] },
       });
 
       return result;
@@ -185,7 +188,7 @@ class Spotify {
       console.log(`Hubo un error al usar el apiFetch ${error}`);
       return false;
     }
-  };
+};
 
   #getArtistParsed = async ({ prop, isComplete }) => {
     const arrayArtistPromises = prop.map(async (artist) => {
