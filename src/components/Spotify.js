@@ -162,14 +162,10 @@ class Spotify {
         option: { type: options["id"]?.search },
       },
       artist: {
-        type: options["artist"]?.type, // Usa el operador opcional para evitar errores si options["artist"] es undefined
+        type: options["artist"]?.type,
         option: { type: options["artist"]?.search, limit, offset },
       },
     };
-
-    console.log('Opciones recibidas:', options);
-
-    console.log(obj[byFormatted]);
 
     if (!obj[byFormatted]) return false;
 

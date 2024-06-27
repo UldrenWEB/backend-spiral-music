@@ -12,8 +12,6 @@ import albumsRoutes from './src/routes/album.js';
 
 connectDB();
 
-const spotify = new Spotify();
-
 configDotenv();
 const app = express();
 const PORT = process.env.PORT ?? 4000;
@@ -31,6 +29,6 @@ app.get("/", (req, res) => {
   res.json({ message: "Hola bebe" });
 });
 
-app.listen(PORT, async () => {
+app.listen(PORT, () => {
   console.log(`Server is running on Port ${PORT} on http://127.0.0.1:${PORT}`);
 });
