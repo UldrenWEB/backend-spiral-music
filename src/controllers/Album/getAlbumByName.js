@@ -1,17 +1,17 @@
-import Album from '../../models/Album.js'; // Asegúrate de que la ruta sea correcta
-import Songs from '../../models/Songs.js'; // Importar el modelo Songs
-import Artist from '../../models/Artist.js'; // Importar el modelo Artist
-import Spotify from '../../components/Spotify.js'; // Asegúrate de que la ruta sea correcta
+import Album from '../../models/Album.js';
+import Songs from '../../models/Songs.js';
+import Artist from '../../models/Artist.js';
+import Spotify from '../../components/Spotify.js';
 
 class AlbumsController {
     constructor() {
-        this.Spotify = new Spotify();
+        this.spotify = new Spotify();
     }
 
     async getAlbumsByName(req, res) {
-        const { name } = req.query; // Cambiado para usar req.query
-        const offset = req.query.offset || '0';
-        const limit = req.query.limit || '10';
+        const { name } = req.query;
+        const offset = parseInt(req.query.offset) || 0;
+        const limit = parseInt(req.query.limit) || 10;
 
         if (!name) {
             console.error('El nombre del álbum es requerido');
@@ -28,25 +28,20 @@ class AlbumsController {
 
         try {
             console.log('Consultando álbumes en la base de datos local...');
-            let albumsFromDB = await Album.find({ name: { $regex: new RegExp(name, 'i') }})
-              .skip(parseInt(offset))
-              .limit(parseInt(limit))
-              .populate('tracks', 'name duration image') // Corregido para usar 'tracks' en lugar de 'idSong'
-              .exec();
+            let albumsFromDB = await Album.find({ name: { $regex: new RegExp(name, 'i') } })
+                .skip(offset)
+                .limit(limit)
+                .populate('idSong', 'name duration image') // Populando canciones
+                .populate('idArtist', 'name genres image popularity') // Populando artistas
+                .exec();
 
             console.log(`Álbumes obtenidos de la base de datos: ${albumsFromDB.length}`);
 
-            let totalFromDB = albumsFromDB.length;
-
-            console.log(`Total de álbumes desde la base de datos: ${totalFromDB}`);
-
-            let combinedAlbums = albumsFromDB;
-
-            if (totalFromDB < parseInt(limit)) {
-                const remaining = parseInt(limit) - totalFromDB;
+            if (albumsFromDB.length < limit) {
+                const remaining = limit - albumsFromDB.length;
                 console.log(`Faltan ${remaining} álbumes, consultando a Spotify...`);
 
-                const spotifyAlbums = await this.Spotify.getAlbums({ by: 'name', param: name, limit: remaining, offset: offset });
+                const spotifyAlbums = await this.spotify.getAlbums({ by: 'name', param: name, limit: remaining, offset: offset });
                 console.log(`Álbumes obtenidos de Spotify: ${spotifyAlbums.length}`);
 
                 for (const spotifyAlbum of spotifyAlbums) {
@@ -54,25 +49,37 @@ class AlbumsController {
 
                     for (const track of spotifyAlbum.tracks) {
                         let existingSong = await Songs.findOne({ name: track.name });
+                        let songId;
+
                         if (!existingSong) {
                             const newSong = new Songs({
                                 name: track.name,
-                                genres: track.genre,
+                                genres: track.genres,
                                 duration: track.duration,
                                 image: track.image,
                                 url_cancion: track.url,
-                                idArtist: track.idArtist
+                                idArtist: [] // Initialize with an empty array
                             });
-                            await newSong.save();
-                            trackIds.push(newSong._id);
+
+                            try {
+                                const savedSong = await newSong.save();
+                                songId = savedSong._id;
+                            } catch (error) {
+                                console.error(`Error al guardar la canción ${track.name}: ${error.message}`);
+                                continue; // Continue with the next song if there's an error
+                            }
                         } else {
-                            trackIds.push(existingSong._id);
+                            songId = existingSong._id;
                         }
+
+                        trackIds.push(songId);
                     }
 
                     const artistIds = [];
+
                     for (const artist of spotifyAlbum.artists) {
                         let existingArtist = await Artist.findOne({ name: artist.name });
+
                         if (!existingArtist) {
                             const newArtist = new Artist({
                                 name: artist.name,
@@ -80,54 +87,70 @@ class AlbumsController {
                                 image: artist.image,
                                 popularity: artist.popularity
                             });
-                            await newArtist.save();
-                            artistIds.push(newArtist._id);
-                        } else {
-                            artistIds.push(existingArtist._id);
+
+                            try {
+                                existingArtist = await newArtist.save();
+                            } catch (error) {
+                                console.error(`Error al guardar el artista ${artist.name}: ${error.message}`);
+                                continue; // Continue with the next artist if there's an error
+                            }
                         }
+
+                        artistIds.push(existingArtist._id);
                     }
 
                     const newAlbum = new Album({
-                        idAlbum: spotifyAlbum.id, // Asegúrate de que esto se asigna correctamente
+                        idAlbum: spotifyAlbum.id,
                         name: spotifyAlbum.name,
-                        tracks: trackIds,
-                        genre: spotifyAlbum.genres,
+                        idSong: trackIds,
+                        genre: spotifyAlbum.genre,
                         image: spotifyAlbum.image,
-                        idArtist: artistIds // Manejado correctamente como ObjectIds
+                        idArtist: artistIds // Assign the artist IDs to the album
                     });
 
                     try {
                         await newAlbum.save();
                         console.log(`Álbum guardado en la base de datos: ${newAlbum.name}`);
-                        combinedAlbums.push(newAlbum); // Asegúrate de hacer push del álbum solo después de guardar
+                        albumsFromDB.push(newAlbum); // Add the saved album to the list
                     } catch (error) {
-                        console.error(`Error al guardar el álbum ${spotifyAlbum.name} en la base de datos: ${error}`);
+                        console.error(`Error al guardar el álbum ${spotifyAlbum.name}: ${error.message}`);
+                        continue; // Continue with the next album if there's an error
                     }
                 }
-                console.log(`Total de álbumes combinados: ${combinedAlbums.length}`);
             } else {
-                console.log(`Usando solo álbumes de la base de datos.`);
+                console.log(`Using only albums from the local database.`);
             }
 
-            const responseAlbums = combinedAlbums.map(album => ({
+            const responseAlbums = albumsFromDB.map(album => ({
                 name: album.name,
-                duration: (album.tracks || []).reduce((acc, track) => acc + track.duration, 0) / (album.tracks || []).length,
+                duration: album.idSong.reduce((acc, song) => acc + song.duration, 0) / album.idSong.length,
                 genres: album.genre || [],
                 image: album.image,
-                Artist: (album.idArtist || []).map(artist => artist.name)
+                artists: album.idArtist.map(artist => ({
+                    name: artist.name,
+                    genres: artist.genres,
+                    image: artist.image,
+                    popularity: artist.popularity
+                })),
+                songs: album.idSong.map(song => ({
+                    name: song.name,
+                    duration: song.duration,
+                    image: song.image,
+                    url_cancion: song.url_cancion
+                }))
             }));
 
-            console.log('Respuesta preparada para enviar:', responseAlbums);
+            console.log('Prepared response to send:', responseAlbums);
 
             res.json({
                 message: {
-                    description: "Se obtuvieron los álbumes correctamente",
+                    description: "Álbumes obtenidos correctamente",
                     code: 0
                 },
                 data: responseAlbums
             });
         } catch (error) {
-            console.error('Error en getAlbumsByName:', error);
+            console.error('Error in getAlbumsByName:', error);
             res.status(500).json({
                 message: {
                     description: 'Error interno del servidor',

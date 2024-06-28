@@ -4,12 +4,10 @@ import Artist from '../../models/Artist.js';
 
 class SongsController {
     constructor() {
-      console.log("Creando instancia de Spotify...");
-      this.spotify = new Spotify();
-      console.log("Instancia de Spotify creada:", this.spotify);
-      
+        console.log("Creando instancia de Spotify...");
+        this.spotify = new Spotify();
+        console.log("Instancia de Spotify creada:", this.spotify);
     }
-
 
     async getSongsbyName(req, res) {
         console.log("Accediendo a getSongsbyName, Spotify es:", this.spotify);
@@ -22,26 +20,20 @@ class SongsController {
             // Ajusta la expresión regular para que solo coincida con canciones que comiencen con el nombre especificado
             let regex = new RegExp("^" + name, "i"); // El "^" indica el inicio de la línea, haciendo la búsqueda más precisa
     
-            let dbSongs = await Songs.find({ name: { $regex: regex } }, {}, { limit: limit, skip: skipAmount });
-            console.log("canciones primarias", dbSongs.length);
+            let dbSongs = await Songs.find({ name: { $regex: regex } }, {}, { limit: limit, skip: skipAmount })
+                                    .populate('idArtist', 'name'); // Popula el nombre del artista desde el modelo Artist
     
-            let newSongs = [];
+            console.log("Canciones encontradas en la base de datos local:", dbSongs.length);
     
-            for (let i in dbSongs) {
-                if (parseInt(i) >= skipAmount) {
-                    console.log("entro");
-                    newSongs.push(dbSongs[i]);
-                }
-            }
-            console.log("canciones secundarias ", newSongs.length);
-    
-            if (newSongs.length < limit) {
+            if (dbSongs.length < limit) {
                 const spotifySongs = await this.spotify.getTracks({
-                    by: 'name', //Artist, //Id y por genre
+                    by: 'name', // Busca por nombre
                     param: name,
                     limit: limit,
                     offset: skipAmount,
                 });
+    
+                console.log("Respuesta de la API de Spotify:", spotifySongs);
     
                 for (const song of spotifySongs) {
                     let existingSong = await Songs.findOne({
@@ -51,9 +43,12 @@ class SongsController {
     
                     if (!existingSong) {
                         const songDoc = await Songs.create({
-                          ...song,
+                            name: song.name,
+                            genres: song.genres,
+                            duration: song.duration,
+                            image: song.image,
+                            url_cancion: song.url_track, // Guarda la URL de la canción
                             idArtist: []
-                             // Inicializa como un array vacío
                         });
     
                         for (const artistObj of song.artists) {
@@ -61,7 +56,7 @@ class SongsController {
                             if (!existingArtist) {
                                 existingArtist = new Artist({
                                     name: artistObj.name,
-                                    genres: artistObj.genre,
+                                    genres: artistObj.genres,
                                     image: artistObj.image,
                                     popularity: artistObj.popularity
                                 });
@@ -75,19 +70,19 @@ class SongsController {
                     }
                 }
             }
-            // Finalmente, retorna todas las canciones encontradas o agregadas
-            // Nota: La consulta al final debería usar también una expresión regular ajustada para coincidir exactamente con el inicio del nombre
-            regex = new RegExp("^" + name, "i"); // Ajusta la expresión regular aquí también si es necesario
-            return res.json({ Songs: await Songs.find({ name: { $regex: regex } }, {}, { limit: limit, skip: skipAmount }) });
+    
+            // Retorna todas las canciones encontradas o agregadas
+            // Asegúrate de usar una expresión regular ajustada al inicio del nombre también en la consulta final
+            regex = new RegExp("^" + name, "i");
+            const finalSongs = await Songs.find({ name: { $regex: regex } }, {}, { limit: limit, skip: skipAmount })
+                                          .populate('idArtist', 'name'); // Vuelve a populart el nombre del artista
+    
+            return res.json({ Songs: finalSongs });
         } catch (error) {
-            console.error(error);
+            console.error("Error en getSongsbyName:", error);
             return res.status(500).json({ message: 'Error interno del servidor' });
         }
     }
-
-
 }
 
 export default SongsController;
-
-//luego de la petición, itero en el objeto "artists" de cada canción, itero en cada canción y guardo en la base de datos el artista obtenido, y luego obtengo el idArtist del artista que guardé y lo coloco en la propiedad idArtist en Song

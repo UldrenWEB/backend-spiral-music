@@ -8,6 +8,7 @@ import artistRoutes from './src/routes/artist.js';
 import playlistRoutes from './src/routes/playlist.js';
 import songsRoutes from './src/routes/songs.js';
 import albumsRoutes from './src/routes/album.js';
+import firebaseRoutes from './src/routes/firebase.js';
 
 
 connectDB();
@@ -18,6 +19,7 @@ const PORT = process.env.PORT ?? 4000;
 
 app.use(express.json());
 
+app.use('/api/firebase', firebaseRoutes);
 app.use('/api/songs', songsRoutes);
 app.use('/api/rol', rolRoutes);
 app.use('/api/artist', artistRoutes);

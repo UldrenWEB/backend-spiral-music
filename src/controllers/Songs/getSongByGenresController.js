@@ -6,6 +6,9 @@ class SongsByGenresController {
         console.log("Creando instancia de SongsByGenresController...");
     }
 
+
+
+
     async getSongsByGenres(req, res) {
         console.log("Accediendo a getSongsByGenres");
         try {
@@ -33,6 +36,7 @@ class SongsByGenresController {
                 duration: song.duration,
                 genres: song.genres,
                 image: song.image,
+                url_cancion: song.url_cancion,
                 Artist: song.idArtist.map(artist => artist.name) // Extraer solo el nombre de cada artista
             }));
 
