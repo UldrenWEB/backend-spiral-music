@@ -7,7 +7,7 @@ class AlbumsGenreController {
 
     async getAlbumsByGenre(req, res) {
         const { genre } = req.params;
-
+    
         if (!genre) {
             console.error('El género es requerido');
             return res.status(400).json({
@@ -18,20 +18,20 @@ class AlbumsGenreController {
                 data: {}
             });
         }
-
+    
         console.log(`Buscando álbumes por género: ${genre}`);
-
+    
         try {
             console.log('Consultando álbumes en la base de datos local...');
             let albumsFromDB = await Album.find({
-                genre: { $in: [genre] }
+                genre: genre // Busca documentos donde el campo `genre` contenga el valor de `genre`
             })
-                .populate('idSong', 'name duration image')
-                .populate('idArtist', 'name genres image popularity')
-                .exec();
-
+               .populate('idSong', 'name duration image')
+               .populate('idArtist', 'name genres image popularity')
+               .exec();
+    
             console.log('Resultado de la consulta:', albumsFromDB);
-
+    
             if (albumsFromDB.length === 0) {
                 console.log('Álbumes no encontrados');
                 return res.json({
@@ -42,7 +42,7 @@ class AlbumsGenreController {
                     data: []
                 });
             }
-
+    
             const responseAlbums = albumsFromDB.map(album => ({
                 name: album.name,
                 duration: album.idSong.reduce((acc, song) => acc + song.duration, 0) / album.idSong.length,
@@ -59,12 +59,11 @@ class AlbumsGenreController {
                     duration: song.duration,
                     image: song.image,
                     url_cancion: song.url_cancion
-
                 }))
             }));
-
+    
             console.log('Álbumes encontrados:', responseAlbums);
-
+    
             res.json({
                 message: {
                     description: "Álbumes obtenidos correctamente",
@@ -83,7 +82,9 @@ class AlbumsGenreController {
             });
         }
     }
+
 }
+
 
 
 

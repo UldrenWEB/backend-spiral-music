@@ -13,6 +13,8 @@ const UserSchema = new mongoose.Schema({
   },
   idRol: { type: mongoose.Schema.Types.String, required: true, ref: 'Rol' },
   idArtist: { type: mongoose.Schema.Types.ObjectId, ref: 'Artist' },
+  playlists: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Playlist' }], // Campo agregado para almacenar las referencias a las playlists
+
 });
 
 UserSchema.pre('save', async function(next) {

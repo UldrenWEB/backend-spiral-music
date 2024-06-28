@@ -20,7 +20,7 @@ router.get('/get-album/:idAlbum', (req, res) => AlbumsIdControllerInstance.getAl
 // Obtener álbumes por genero
 const AlbumsGenreControllerInstance = new AlbumsGenreController();
 
-router.get('/get-albums-by-genre/:genre', (req, res) => AlbumsGenreControllerInstance.getAlbumsByGenre(req, res));
+router.get('/get-albums-by-genre/:genre',AlbumsGenreControllerInstance.getAlbumsByGenre);
 
 export default router;
 

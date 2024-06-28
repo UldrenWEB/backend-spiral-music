@@ -59,6 +59,7 @@ class AlbumsController {
                                 image: track.image,
                                 url_cancion: track.url,
                                 idArtist: [] // Initialize with an empty array
+                                
                             });
 
                             try {
@@ -105,7 +106,8 @@ class AlbumsController {
                         idSong: trackIds,
                         genre: spotifyAlbum.genre,
                         image: spotifyAlbum.image,
-                        idArtist: artistIds // Assign the artist IDs to the album
+                        idArtist: artistIds, // Assign the artist IDs to the album
+                        popularity: spotifyAlbum.popularity
                     });
 
                     try {
@@ -126,6 +128,7 @@ class AlbumsController {
                 duration: album.idSong.reduce((acc, song) => acc + song.duration, 0) / album.idSong.length,
                 genres: album.genre || [],
                 image: album.image,
+                popularity: album.popularity,
                 artists: album.idArtist.map(artist => ({
                     name: artist.name,
                     genres: artist.genres,

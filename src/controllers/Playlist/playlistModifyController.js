@@ -1,6 +1,5 @@
 import Playlist from '../../models/Playlist.js';
 
-
 export const modifyPlaylist = async (req, res) => {
     try {
         // Extraer la playlist a modificar
@@ -8,7 +7,7 @@ export const modifyPlaylist = async (req, res) => {
         const playlist = await Playlist.findById(idPlaylist);
 
         if (!playlist) {
-            return res.status(404).json({ message: 'Playlist no encontrada' });
+            return res.status(404).json({ message: { code: 404, description: 'Playlist no encontrada' } });
         }
 
         // Modificar la playlist
@@ -19,9 +18,20 @@ export const modifyPlaylist = async (req, res) => {
         // Guardar la playlist modificada
         const savedPlaylist = await playlist.save();
 
-        res.status(200).json({ message: 'Playlist modificada correctamente', playlist: savedPlaylist });
+        // Formatear la respuesta según las nuevas especificaciones
+        const response = {
+            message: {
+                code: 200,
+                description: 'Playlist modificada correctamente'
+            },
+            data: {
+                playlist: savedPlaylist
+            }
+        };
+
+        res.status(200).json(response);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error interno del servidor' });
+        res.status(500).json({ message: { code: 500, description: 'Error interno del servidor' }, error: error.message });
     }
 }
