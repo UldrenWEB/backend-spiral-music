@@ -9,11 +9,15 @@ export const createPlaylist = async (req, res) => {
       const { name, image, idSong } = req.body;
 
       if (!name ||!image ||!Array.isArray(idSong)) {
-          return res.status(400).json({ message: 'Faltan datos necesarios para crear la playlist.' });
-      }
+        return res.status(400).json({ message: 'Faltan datos necesarios para crear la playlist.' });
+    }
+
+      // Asegúrate de que el userId del usuario autenticado esté presente en el cuerpo de la solicitud
+      const userId = req.user._id; // Aquí asumimos que el objeto req.user tiene un campo _id que contiene el ID del usuario
 
       // Crear una nueva instancia de Playlist
       const playlist = new Playlist({
+          userId, // Incluir el userId en la playlist
           name,
           image,
           idSong,
@@ -24,14 +28,13 @@ export const createPlaylist = async (req, res) => {
 
       // Usar populate para obtener el nombre de la canción y, si es posible, el nombre del artista
       const populatedPlaylist = await Playlist.findById(savedPlaylist._id)
-         .populate({
+       .populate({
               path: 'idSong',
               populate: {
                   path: 'idArtist',
                   model: 'Artist'
               }
           });
-          
 
       // Preparar la respuesta
       const response = {
@@ -44,6 +47,7 @@ export const createPlaylist = async (req, res) => {
                   _id: populatedPlaylist._id,
                   name: populatedPlaylist.name,
                   image: populatedPlaylist.image,
+                  userId: userId, // Incluir el userId en la respuesta
                   songs: populatedPlaylist.idSong.map(song => ({
                       name: song.name,
                       artistName: song.idArtist? song.idArtist.name : 'Artista no disponible'

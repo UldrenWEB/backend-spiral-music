@@ -10,6 +10,11 @@ export const modifyPlaylist = async (req, res) => {
             return res.status(404).json({ message: { code: 404, description: 'Playlist no encontrada' } });
         }
 
+        // Verificar si el userId de la playlist coincide con el userId del usuario autenticado
+        if (playlist.userId.toString()!== req.user._id.toString()) {
+            return res.status(403).json({ message: { code: 403, description: 'Acceso denegado: No tienes permiso para modificar esta playlist.' } });
+        }
+
         // Modificar la playlist
         playlist.name = name;
         playlist.image = image;
