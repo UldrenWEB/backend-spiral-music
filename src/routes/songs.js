@@ -5,6 +5,9 @@ import SongsByArtistController from '../controllers/Songs/getSongByArtistControl
 import getSongById from '../controllers/Songs/getSongByIdController.js';
 import SongsByGenresController  from '../controllers/Songs/getSongByGenresController.js';
 import SongsByDurationController from '../controllers/Songs/getSongByDuration.js';
+import SongsTopGenreController from '../controllers/Tops/getSongByTopGenres.js';
+
+const songsTopGenreController = new SongsTopGenreController();
 
 const songsControllerByDuration = new SongsByDurationController();
 
@@ -38,6 +41,10 @@ router.get('/get-songs-by-artist/:name/:offset?', (req, res ) => {
 
    //Obtener canciones por duración
    router.get('/get-songs-by-duration', songsControllerByDuration.getSongsByDuration);
+
+    //Middleware para inicializar el controlador y llamar al método correcto
+    router.get('/get-top-genres', (req, res) => songsTopGenreController.getSongsByGenre(req, res));
+
 
 
 export default router
