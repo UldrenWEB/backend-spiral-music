@@ -11,6 +11,11 @@ export const deletePlaylist = async (req, res) => {
             return res.status(404).json({ message: 'Playlist no encontrada' });
         }
 
+        // Verificar si el userId de la playlist coincide con el userId del usuario autenticado
+        if (playlist.userId.toString()!== req.user._id.toString()) {
+            return res.status(403).json({ message: { code: 403, description: 'Acceso denegado: No tienes permiso para eliminar esta playlist.' } });
+        }
+
         // Eliminar la playlist basada en su ObjectId
         await Playlist.findByIdAndDelete(playlistId);
 

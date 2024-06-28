@@ -1,4 +1,3 @@
-
 import Playlist from '../../models/Playlist.js';
 import Songs from '../../models/Songs.js';
 import Artist from '../../models/Artist.js';
@@ -18,6 +17,11 @@ export const getPlaylistById = async (req, res) => {
 
         if (!playlist) {
             return res.status(404).json({ message: 'Playlist not found' });
+        }
+
+        // Verificar si el userId de la playlist coincide con el userId del usuario autenticado
+        if (playlist.userId.toString()!== req.user._id.toString()) {
+            return res.status(403).json({ message: 'Acceso denegado: No tienes permiso para acceder a esta playlist.' });
         }
 
         // Mapear las canciones para incluir el nombre del artista
