@@ -6,16 +6,13 @@ class SongsByGenresController {
         console.log("Creando instancia de SongsByGenresController...");
     }
 
-
-
-
     async getSongsByGenres(req, res) {
         console.log("Accediendo a getSongsByGenres");
         try {
             const { genres, offset, limit } = req.query;
 
-            // Parsea los géneros a un arreglo si viene como una cadena
-            const parsedGenres = Array.isArray(genres)? genres : genres.split(',');
+            // Parsea los géneros a un arreglo si viene como una cadena y normalízalos a minúsculas
+            const parsedGenres = Array.isArray(genres)? genres : genres.split(',').map(genre => genre.trim().toLowerCase());
 
             // Define el límite y salto para paginación
             const queryLimit = limit? parseInt(limit) : 10; // Si no se define un límite, usa 10 por defecto
@@ -25,10 +22,11 @@ class SongsByGenresController {
             const songs = await Songs.find({
                 genres: {
                     $in: parsedGenres // Busca canciones donde alguno de los géneros coincida con los proporcionados
-                }})
-               .skip(skipAmount)
-               .limit(queryLimit)
-               .populate('idArtist', 'name'); // Poblar solo el campo 'name' del modelo Artist
+                }
+            })
+            .skip(skipAmount)
+            .limit(queryLimit)
+            .populate('idArtist', 'name'); // Poblar solo el campo 'name' del modelo Artist
 
             // Preparar la respuesta ajustando la estructura según lo solicitado
             const responseSongs = songs.map(song => ({
@@ -42,8 +40,8 @@ class SongsByGenresController {
 
             res.json({
                 message: {
-                    description: "Se obtuvo la canción correctamente",
-                    code: 0 // Indicamos éxito al encontrar y obtener la canción
+                    description: "Se obtuvieron las canciones correctamente",
+                    code: 0 // Indicamos éxito al encontrar y obtener las canciones
                 },
                 data: responseSongs
             });
@@ -60,6 +58,5 @@ class SongsByGenresController {
         }
     }
 }
-
 
 export default SongsByGenresController;
